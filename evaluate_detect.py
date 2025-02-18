@@ -4,7 +4,7 @@ import os
 
 
 if __name__ == "__main__": 
-    model = YOLO("runs/detect/train2/weights/best.pt")
+    model = YOLO("runs/detect/train/train2/weights/best.pt")
 
     results = model.val(
         data = "datasets/data.yaml", 
@@ -23,5 +23,5 @@ if __name__ == "__main__":
     if (not os.path.exists("outputs")): 
         os.makedirs("outputs")
 
-    with open("outputs/evaluate_results.json", "w") as f: 
+    with open("outputs/detection_results_3.json", "w") as f: 
         json.dump(box_metrics, f, indent=4)
