@@ -3,3 +3,5 @@ datasets*
 runs/
 *.mp4
 outputs
+*.bib
+video/

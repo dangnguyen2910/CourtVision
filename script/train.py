@@ -4,7 +4,7 @@ from ultralytics import YOLO
 if __name__ == "__main__": 
     model = YOLO("yolo11n.pt")
     model.train(
-        data = "datasets/data.yaml", 
+        data = "datasets/player_tracking/data.yaml", 
         epochs=2, 
         imgsz=640, 
         batch=1,
