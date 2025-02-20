@@ -28,7 +28,7 @@ while cap.isOpened():
 
     start_time = time.time()  # Start time
 
-    results = model.track(frame, persist=True, device="cpu")  # YOLO tracking
+    results = model.track(frame, persist=True, device=0)  # YOLO tracking
 
     end_time = time.time()  # End time
     elapsed_time = end_time - start_time
@@ -47,7 +47,7 @@ while cap.isOpened():
             track_id = int(box.id[0]) if box.id is not None else -1  
 
             # Draw bounding box
-            cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 3)
+            cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
 
             # Draw Track ID
             cv2.putText(frame, f"ID: {track_id}", (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 0, 0), 3)
