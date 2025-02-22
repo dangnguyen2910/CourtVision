@@ -14,7 +14,7 @@ class Evaluator:
         self.model = YOLO("runs/detect/train3/weights/best.pt")
         self.tracker = DeepSort(max_age=30)
         self.TRACKER_METHOD = "botsort.yaml"     # "bytetrack.yaml" or "botsort.yaml"
-        self.IoU_THRESHOLD = 0.75
+        self.IoU_THRESHOLD = 0.76
         
         self.DETECTION_DATA_PATH = "datasets/player_tracking/data.yaml"
         self.YOLO_GT_FOLDER = "datasets/video/train/labels"  # Folder containing YOLO ground truth (.txt files)
@@ -27,7 +27,7 @@ class Evaluator:
         
         
     def run(self): 
-        self.yolo_to_mov()
+        # self.yolo_to_mov()
         self.evaluate_detect()
         self.generate_tracking_result()
         self.evaluate_tracking()

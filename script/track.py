@@ -28,7 +28,7 @@ while cap.isOpened():
 
     start_time = time.time()  # Start time
 
-    results = model.track(frame, persist=True, device="cpu")  # YOLO tracking
+    results = model.track(frame, persist=True, device=0)  # YOLO tracking
 
     end_time = time.time()  # End time
     elapsed_time = end_time - start_time
