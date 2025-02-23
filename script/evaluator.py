@@ -65,31 +65,39 @@ class Evaluator:
                         y1 = int((y_center - height / 2) * frame_height)
                         x2 = int((x_center + width / 2) * frame_width)
                         y2 = int((y_center + height / 2) * frame_height)
+                        
+                        w = x2 - x1
+                        h = y2 - y1
 
-                        detections.append(([x1, y1, x2, y2], 1.0, class_id))  # Confidence = 1.0 (since GT has no confidence)
+                        detections.append(([x1, y1, w, h], 1.0, class_id))  # Confidence = 1.0 (since GT has no confidence)
 
             # Use DeepSORT to track objects and maintain consistent IDs
             tracks = self.tracker.update_tracks(detections, frame=frame)
 
             for track in tracks:
                 # if not track.is_confirmed():
-                #     continue
+                    # continue
 
                 object_id = track.track_id
-                x1, y1, x2, y2 = map(int, track.to_ltrb())
+                x1, y1, w,h = map(int, track.to_ltwh())
+                
+                # w = x2 - x1
+                # h = y2 - y1
 
-                mot_annotations.append([frame_id, object_id, x1, y1, x2, y2, 1.0, class_id, -1, -1])
+                mot_annotations.append([frame_id, object_id, x1, y1, w, h, 1.0, class_id, -1, -1])
 
         cap.release()
 
         # Save to MOT format CSV
-        df = pd.DataFrame(mot_annotations, columns=["frame", "id", "x1", "y1", "x2", "y2", "conf", "class", "-1", "-1"])
+        df = pd.DataFrame(mot_annotations, columns=["frame", "id", "x1", "y1", "w", "h", "conf", "class", "-1", "-1"])
         df.to_csv(self.MOT_GT_PATH, index=False)
 
-        print(f"Conversion complete! MOT format saved as {self.MOT_GT_PATH}")
         
         
     def evaluate_detect(self): 
+        """ 
+        Calculate metrics for object detection
+        """
         results = self.model.val(
             data = self.DETECTION_DATA_PATH, 
             split = "test"
@@ -112,6 +120,9 @@ class Evaluator:
             
     
     def generate_tracking_result(self): 
+        """ 
+        Generate tracking result in MOT format
+        """
         # Define a list to store tracking results
         tracking_results = []
 
@@ -127,10 +138,10 @@ class Evaluator:
 
             # Save tracking results: [frame, track_id, x1, y1, x2, y2]
             if results[0].boxes.id is not None:
-                for box, track_id in zip(results[0].boxes.xyxy, results[0].boxes.id):
-                    x1, y1, x2, y2 = map(int, box.tolist())
+                for box, track_id in zip(results[0].boxes.xywh, results[0].boxes.id):
+                    x1, y1, w, h = map(int, box.tolist())
                     track_id = int(track_id)
-                    tracking_results.append([frame_idx, track_id, x1, y1, x2, y2])
+                    tracking_results.append([frame_idx, track_id, x1, y1, w, h])
 
             frame_idx += 1
 
@@ -139,7 +150,7 @@ class Evaluator:
         # Convert results to DataFrame and save as CSV
         df_tracking = pd.DataFrame(
             tracking_results, 
-            columns=["frame", "id", "x1", "y1", "x2", "y2"]
+            columns=["frame", "id", "x1", "y1", "w", "h"]
         )
         df_tracking.to_csv(self.TRACK_RESULT_PATH, index=False)
         
@@ -164,8 +175,8 @@ class Evaluator:
 
             # Compute IoU distances
             dists = mm.distances.iou_matrix(
-                gt_frame[["x1", "y1", "x2", "y2"]].values,
-                tracker_frame[["x1", "y1", "x2", "y2"]].values,
+                gt_frame[["x1", "y1", "w", "h"]].values,
+                tracker_frame[["x1", "y1", "w", "h"]].values,
                 max_iou=self.IoU_THRESHOLD
             )
 
@@ -178,7 +189,10 @@ class Evaluator:
             acc, 
             metrics=[
                 "num_frames", 
-                
+                "num_matches",
+                "num_switches", 
+                "num_false_positives", 
+                "num_misses",
                 "mota", 
                 "motp", 
                 "idf1", 
